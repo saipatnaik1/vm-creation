@@ -5,20 +5,20 @@ steps:
       - >
         sleep 45 &&  echo $(gcloud logging read
         "protoPayload.authorizationInfo.permission=compute.machineImages.create"
-        --limit 1 --format json --quiet) > _LOG && apt-get update && apt-get
-        install -y jq  && echo $(echo "$(cat _LOG)" | jq -r
-        '.[0].protoPayload.resourceName | split("/") | .[-1]')  > _IMAGE
+        --limit 1 --format json --quiet --project sai-vizag-test) > _LOG &&
+        apt-get update && apt-get install -y jq  && echo $(echo "$(cat _LOG)" |
+        jq -r '.[0].protoPayload.resourceName | split("/") | .[-1]')  > _IMAGE
     entrypoint: bash
   - name: gcr.io/cloud-builders/gcloud
     args:
       - '-c'
-      - | 
+      - |
         if [[ $(cat _IMAGE) == tr-debian-11-v* ]]; then
           gcloud compute instances create debian-11-$(date +%d%h%Y-%H%M | tr '[:upper:]' '[:lower:]') \
-            --project=sai-vizag-test \
+            --project=project-vm-creation-410104 \
             --zone=us-central1-a \
             --machine-type=e2-medium \
-            --service-account=sai-120@sai-vizag-test.iam.gserviceaccount.com \
+            --service-account=test-sac@project-vm-creation-410104.iam.gserviceaccount.com \
             --scopes=https://www.googleapis.com/auth/cloud-platform \
             --source-machine-image=$(cat _IMAGE) \
             --metadata=startup-script-url=gs://tst-bkt-1/startup-script.sh
